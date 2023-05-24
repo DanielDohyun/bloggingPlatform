@@ -6,9 +6,6 @@ const SignupForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-
-  console.log(process.env.NEXT_PUBLIC_API_KEY)
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
