@@ -12,6 +12,7 @@ const SignupForm: React.FC = () => {
     try {
       const { user } = await firebase.auth().createUserWithEmailAndPassword(email, password);
       console.log('User created:', user);
+      
       // Handle successful signup
     } catch (error) {
       console.error('Error signing up:', error);
