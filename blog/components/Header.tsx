@@ -1,12 +1,13 @@
+"use client"; // This is a client component
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useScrollDirection } from '../utils/useScrollDirection';
+// import { useScrollDirection } from '../utils/useScrollDirection';
 import firebase from '../utils/firebase';
 
 const Header: React.FC = () => {
   const [user, setUser] = useState<firebase.User | null>(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const scrollDirection = useScrollDirection();
+//   const [isCollapsed, setIsCollapsed] = useState(false);
+//   const scrollDirection = useScrollDirection();
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
@@ -16,23 +17,28 @@ const Header: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY <= 0) {
-        setIsCollapsed(false);
-      } else if (scrollDirection === 'down') {
-        setIsCollapsed(true);
-      } else if (scrollDirection === 'up') {
-        setIsCollapsed(false);
-      }
-    };
+//   useEffect(() => {
+//     const handleScroll = () => {
+//       if (window.scrollY <= 0) {
+//         console.log('0')
+//         setIsCollapsed(false);
+//       } else if (scrollDirection === 'down') {
+//         console.log('down')
 
-    window.addEventListener('scroll', handleScroll);
+//         setIsCollapsed(true);
+//       } else if (scrollDirection === 'up') {
+//         console.log('up')
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [scrollDirection]);
+//         setIsCollapsed(false);
+//       }
+//     };
+
+//     window.addEventListener('scroll', handleScroll);
+
+//     return () => {
+//       window.removeEventListener('scroll', handleScroll);
+//     };
+//   }, [scrollDirection]);
 
   const handleSignOut = async () => {
     try {
@@ -46,11 +52,12 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header
-      className={`header ${
-        isCollapsed ? 'collapsed' : ''
-      } bg-black text-white fixed w-full z-50 transition-all duration-300 ease-in-out`}
-    >
+    // <header
+    //   className={`header ${
+    //     isCollapsed ? 'collapsed' : ''
+    //   } bg-black text-white fixed w-full z-50 transition-all duration-300 ease-in-out`}
+    // >
+    <header className='bg-black text-white fixed w-full z-50'>
       <nav className="container mx-auto flex items-center justify-between py-4 px-6">
         <div className="logo">
           {/* <img src="/apple-logo.png" alt="Apple" className="h-8" /> */}
@@ -73,18 +80,14 @@ const Header: React.FC = () => {
               </button>
             </>
           ) : (
-            <ul className='flex'>
-                <li className="bg-transparent border border-gray-400 text-sm text-gray-400 py-2 px-4 rounded hover:bg-gray-400 hover:text-white transition-all duration-300 ease-in-out mr-3">
-                <Link href="/signin">
-                  Sign In
-              </Link>
-                </li>
-                <li className="bg-transparent border border-gray-400 text-sm text-gray-400 py-2 px-4 rounded hover:bg-gray-400 hover:text-white transition-all duration-300 ease-in-out">
-                <Link href="/signup">
-                  Sign Up
-              </Link>
-                </li>             
-            </ul>
+            <div className='flex'>
+            <Link className="bg-transparent border border-gray-400 text-sm text-gray-400 py-2 px-4 rounded hover:bg-gray-400 hover:text-white transition-all duration-300 ease-in-out mr-3" href="/login">
+              Sign In
+          </Link>
+            <Link className="bg-transparent border border-gray-400 text-sm text-gray-400 py-2 px-4 rounded hover:bg-gray-400 hover:text-white transition-all duration-300 ease-in-out mr-3" href="/signup">
+              Sign Up
+          </Link>
+        </div>
           )}
         </div>
       </nav>
