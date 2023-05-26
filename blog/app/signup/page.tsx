@@ -1,4 +1,5 @@
 // pages/CreatePostPage.tsx
+"use client"; // This is a client component
 import SignupForm from '../../components/SignupForm';
 import { useContext } from 'react';
 import AuthContext from '../../context/authContext';
