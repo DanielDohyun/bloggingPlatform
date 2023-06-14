@@ -79,12 +79,52 @@ const MainPage: React.FC = () => {
   };
 
   const handleLikeClick = async (postId: string) => {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      // User not logged in, handle accordingly
+      return;
+    }
+  
+    const postRef = firebase.firestore().collection('posts').doc(postId);
+    const postSnapshot = await postRef.get();
+  
+    if (!postSnapshot.exists) {
+      // Post doesn't exist, handle accordingly
+      return;
+    }
+  
+    const post = postSnapshot.data();
+    const previousLikes = post?.likes || [];
+    const userHasLiked = previousLikes.includes(user.uid);
+  
     try {
-      // Implement your logic to handle liking a post
+      let updatedLikes = [];
+  
+      if (userHasLiked) {
+        // User has already liked the post, remove like
+        updatedLikes = previousLikes.filter((userId) => userId !== user.uid);
+      } else {
+        // User hasn't liked the post, add like
+        updatedLikes = [...previousLikes, user.uid];
+      }
+  
+      await postRef.update({
+        likes: updatedLikes,
+      });
+  
+      // Update the post's like count
+      const updatedPostSnapshot = await postRef.get();
+      const updatedPost = updatedPostSnapshot.data();
+      const likeCount = updatedPost.likes ? updatedPost.likes.length : 0;
+      await postRef.update({
+        likeCount,
+      });
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error updating like:', error);
     }
   };
+
+  console.log(posts)
 
   return (
     <div>
