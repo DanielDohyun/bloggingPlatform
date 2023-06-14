@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import { useContext } from 'react';
 import AuthContext from '../context/authContext';
 import firebase from '../utils/firebase';
+import Comments  from '../components/Comments';
 
 interface Post {
   id: string;
@@ -17,6 +18,8 @@ const MainPage: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
+
+  console.log(user?.displayName)
 
   useEffect(() => {
     const unsubscribe = firebase.firestore()
@@ -44,6 +47,7 @@ const MainPage: React.FC = () => {
       await firebase.firestore().collection('posts').add({
         content: newPost,
         userId: user?.uid,
+        useName: user?.displayName,
         createdAt: new Date(),
       });
 
@@ -115,7 +119,7 @@ const MainPage: React.FC = () => {
       // Update the post's like count
       const updatedPostSnapshot = await postRef.get();
       const updatedPost = updatedPostSnapshot.data();
-      const likeCount = updatedPost.likes ? updatedPost.likes.length : 0;
+      const likeCount = updatedPost?.likes ? updatedPost?.likes.length : 0;
       await postRef.update({
         likeCount,
       });
@@ -152,16 +156,16 @@ const MainPage: React.FC = () => {
               <p>{post.content}</p>
             </div>
             <div className="post-actions">
-              <button onClick={() => handleLikeClick(post.id)}>Like</button>
+              <p>❤️ {post.likeCount}</p>
+              <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
             </div>
             <div className="comment-section">
-              <h3>Comments</h3>
-              {/* Display comments for the post */}
-              {/* ... */}
+              <Comments post={post}/>
+              {/* <h3>Comments</h3>
               <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
                 <input type="text" id={`comment-input-${post.id}`} placeholder="Write a comment..." />
                 <button type="submit">Submit</button>
-              </form>
+              </form> */}
             </div>
           </div>
         ))}
