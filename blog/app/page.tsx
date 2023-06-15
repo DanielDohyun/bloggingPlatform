@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { useContext } from 'react';
 import AuthContext from '../context/authContext';
 import firebase from '../utils/firebase';
-import Comments  from '../components/Comments';
+import Comments from '../components/Comments';
 
 interface Post {
   id: string;
@@ -18,8 +18,11 @@ const MainPage: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
+  let initial;
+  if (user?.displayName) {
+    initial = user?.displayName[0].toUpperCase();
+  }
 
-  console.log(user?.displayName)
 
   useEffect(() => {
     const unsubscribe = firebase.firestore()
@@ -88,22 +91,22 @@ const MainPage: React.FC = () => {
       // User not logged in, handle accordingly
       return;
     }
-  
+
     const postRef = firebase.firestore().collection('posts').doc(postId);
     const postSnapshot = await postRef.get();
-  
+
     if (!postSnapshot.exists) {
       // Post doesn't exist, handle accordingly
       return;
     }
-  
+
     const post = postSnapshot.data();
     const previousLikes = post?.likes || [];
     const userHasLiked = previousLikes.includes(user.uid);
-  
+
     try {
       let updatedLikes = [];
-  
+
       if (userHasLiked) {
         // User has already liked the post, remove like
         updatedLikes = previousLikes.filter((userId) => userId !== user.uid);
@@ -111,11 +114,11 @@ const MainPage: React.FC = () => {
         // User hasn't liked the post, add like
         updatedLikes = [...previousLikes, user.uid];
       }
-  
+
       await postRef.update({
         likes: updatedLikes,
       });
-  
+
       // Update the post's like count
       const updatedPostSnapshot = await postRef.get();
       const updatedPost = updatedPostSnapshot.data();
@@ -128,48 +131,55 @@ const MainPage: React.FC = () => {
     }
   };
 
-  console.log(posts)
-
   return (
     <div>
       <Header />
 
-      {/* Create Post Section */}
-      <section className='pt-[80px]'>
-        <h2>Create a Post</h2>
-        <form onSubmit={handlePostSubmit}>
-          <textarea
-            value={newPost}
-            onChange={(e) => setNewPost(e.target.value)}
-            placeholder="Write your post here..."
-          ></textarea>
-          <button type="submit">Post</button>
-        </form>
-      </section>
+      <div className="w-[80vw] md:w-[60vw] mx-auto pt-[120px]">
+        {/* Create Post Section */}
+        <section className='  md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6'>
+          <form className='flex' onSubmit={handlePostSubmit}>
+            {initial ?
+              <div className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <span className="font-medium text-gray-600 dark:text-gray-300">{initial}</span>
+              </div> :
+              <div className="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <svg className="absolute w-12 h-12 text-gray-400 -left-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+              </div>
+            }
 
-      {/* Posts Section */}
-      <section>
-        <h2>Posts</h2>
-        {posts.map((post: any) => (
-          <div key={post.id} className="post">
-            <div className="post-content">
-              <p>{post.content}</p>
+            <input
+              className=' flex-1 bg-gray-200 rounded-full px-3 py-2 mx-3'
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              placeholder="Write your post here..."
+            ></input>
+            <button className='hidden sm:block bg-[#1877F2] text-white p-2 rounded' type="submit">Post</button>
+          </form>
+        </section>
+
+        {/* Posts Section */}
+          {posts.map((post: any) => (
+            <div key={post.id} className="post max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6">
+              <div className="post-content">
+                <p>{post.content}</p>
+              </div>
+              <div className="post-actions">
+                {
+                  post.likecount ?
+                    <p>❤️ {post.likeCount}</p> :
+                    <p>❤️ 0</p>
+                }
+                <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
+              </div>
+
+              <div className="comment-section">
+                <Comments post={post} />
+              </div>
             </div>
-            <div className="post-actions">
-              <p>❤️ {post.likeCount}</p>
-              <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
-            </div>
-            <div className="comment-section">
-              <Comments post={post}/>
-              {/* <h3>Comments</h3>
-              <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
-                <input type="text" id={`comment-input-${post.id}`} placeholder="Write a comment..." />
-                <button type="submit">Submit</button>
-              </form> */}
-            </div>
-          </div>
-        ))}
-      </section>
+          ))}
+      </div>
+
     </div>
   );
 };
