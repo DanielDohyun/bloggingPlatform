@@ -19,14 +19,14 @@ interface Post {
   createdAt: Date;
 }
 
-
 const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const { user } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
   const [editCommentId, setEditCommentId] = useState<string>('');
   const [editedCommentContent, setEditedCommentContent] = useState<string>('');
-  const [loginComment, setLoginComment] = useState(true);
-  const [noComment, setNoComment] = useState(false)
+  const [prevComment, setPrevComment] = useState<string>('');
+  const [loginComment, setLoginComment] = useState<boolean>(true);
+  const [noComment, setNoComment] = useState<boolean>(false)
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -54,7 +54,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>, postId: string) => {
     e.preventDefault();
-  
+
     if (!user) {
       setLoginComment(false);
       return;
@@ -76,7 +76,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         userId: user?.uid,
         createdAt: new Date(),
       });
-  
+
       commentInput.value = ''; // Clear the comment input field
       setLoginComment(true);
       setNoComment(false);
@@ -84,29 +84,29 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       console.error('Error creating comment:', error);
     }
   };
-  
+
   const handleCommentDelete = async (commentId: string) => {
     const user = firebase.auth().currentUser;
     if (!user) {
       // User not logged in, handle accordingly
       return;
     }
-  
+
     try {
       const commentRef = firebase.firestore().collection('comments').doc(commentId);
       const commentSnapshot = await commentRef.get();
-  
+
       if (!commentSnapshot.exists) {
         // Comment doesn't exist, handle accordingly
         return;
       }
-  
+
       const comment = commentSnapshot.data();
       if (comment?.userId !== user.uid) {
         // User doesn't own the comment, handle accordingly
         return;
       }
-  
+
       await commentRef.delete();
     } catch (error) {
       console.error('Error deleting comment:', error);
@@ -129,11 +129,17 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         return;
       }
 
-      const comment = commentSnapshot.data();
-      if (comment?.userId !== user.uid) {
-        // User doesn't own the comment, handle accordingly
+      if (prevComment === editedCommentContent) {
+        setEditCommentId('');
+        setEditedCommentContent('');
         return;
       }
+
+      // const comment = commentSnapshot.data();
+      // if (comment?.userId !== user.uid) {
+      //   // User doesn't own the comment, handle accordingly
+      //   return;
+      // }
 
       await commentRef.update({
         content: editedCommentContent,
@@ -186,7 +192,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
           {comment.userId === firebase.auth().currentUser?.uid && (
             <div className="comment-actions">
               {editCommentId === comment.id ? null : (
-                <button onClick={() => { setEditCommentId(comment.id); setEditedCommentContent(comment.content) }}>Edit</button>
+                <button onClick={() => { setEditCommentId(comment.id); setEditedCommentContent(comment.content); setPrevComment(comment.content) }}>Edit</button>
               )}
               <button onClick={() => handleCommentDelete(comment.id)}>Delete</button>
             </div>

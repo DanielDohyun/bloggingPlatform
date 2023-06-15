@@ -5,6 +5,7 @@ import { useContext } from 'react';
 import AuthContext from '../context/authContext';
 import firebase from '../utils/firebase';
 import Comments from '../components/Comments';
+import SigninModal from '@/components/SigninModal';
 
 interface Post {
   id: string;
@@ -16,16 +17,14 @@ interface Post {
 const MainPage: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [newPost, setNewPost] = useState('');
-  const [curPost, setCurPost] = useState(true);
-  const [loginPost, setLoginPost] = useState(true);
-  const [loginLike, setLoginLike] = useState(true);
+  const [newPost, setNewPost] = useState<string>('');
+  const [curPost, setCurPost] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   let initial;
   if (user?.displayName) {
     initial = user?.displayName[0].toUpperCase();
   }
-
 
   useEffect(() => {
     const unsubscribe = firebase.firestore()
@@ -46,7 +45,7 @@ const MainPage: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
-      setLoginPost(false);
+      setIsModalOpen(true);
       return;
     }
 
@@ -65,7 +64,6 @@ const MainPage: React.FC = () => {
 
       setNewPost('');
       setCurPost(true);
-      setLoginPost(true);
 
     } catch (error) {
       console.error('Error creating post:', error);
@@ -75,7 +73,7 @@ const MainPage: React.FC = () => {
   const handleLikeClick = async (postId: string) => {
     const user = firebase.auth().currentUser;
     if (!user) {
-      setLoginLike(false);
+      setIsModalOpen(true);
       // User not logged in, handle accordingly
       return;
     }
@@ -114,7 +112,6 @@ const MainPage: React.FC = () => {
       await postRef.update({
         likeCount,
       });
-      setLoginLike(true);
     } catch (error) {
       console.error('Error updating like:', error);
     }
@@ -124,8 +121,14 @@ const MainPage: React.FC = () => {
     <div>
       <Header />
 
+      {
+        isModalOpen && <SigninModal onClose={setIsModalOpen} />
+      }
+
       {/* Creating a post */}
       <div className="w-[80vw] md:w-[60vw] lg:w-fit mx-auto pt-[120px]">
+
+
         {/* Create Post Section */}
         <section className='  max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6'>
           <form className='flex' onSubmit={handlePostSubmit}>
