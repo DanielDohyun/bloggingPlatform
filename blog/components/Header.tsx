@@ -1,13 +1,10 @@
 "use client"; // This is a client component
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-// import { useScrollDirection } from '../utils/useScrollDirection';
 import firebase from '../utils/firebase';
 
 const Header: React.FC = () => {
   const [user, setUser] = useState<firebase.User | null>(null);
-//   const [isCollapsed, setIsCollapsed] = useState(false);
-//   const scrollDirection = useScrollDirection();
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
@@ -16,29 +13,6 @@ const Header: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
-
-//   useEffect(() => {
-//     const handleScroll = () => {
-//       if (window.scrollY <= 0) {
-//         console.log('0')
-//         setIsCollapsed(false);
-//       } else if (scrollDirection === 'down') {
-//         console.log('down')
-
-//         setIsCollapsed(true);
-//       } else if (scrollDirection === 'up') {
-//         console.log('up')
-
-//         setIsCollapsed(false);
-//       }
-//     };
-
-//     window.addEventListener('scroll', handleScroll);
-
-//     return () => {
-//       window.removeEventListener('scroll', handleScroll);
-//     };
-//   }, [scrollDirection]);
 
   const handleSignOut = async () => {
     try {

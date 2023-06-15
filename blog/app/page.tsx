@@ -14,10 +14,13 @@ interface Post {
 }
 
 const MainPage: React.FC = () => {
-  // const { currentUser } = useAuth();
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
+  const [curPost, setCurPost] = useState(true);
+  const [loginPost, setLoginPost] = useState(true);
+  const [loginLike, setLoginLike] = useState(true);
+
   let initial;
   if (user?.displayName) {
     initial = user?.displayName[0].toUpperCase();
@@ -42,7 +45,13 @@ const MainPage: React.FC = () => {
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      setLoginPost(false);
+      return;
+    }
+
     if (!newPost) {
+      setCurPost(false);
       return;
     }
 
@@ -55,39 +64,18 @@ const MainPage: React.FC = () => {
       });
 
       setNewPost('');
+      setCurPost(true);
+      setLoginPost(true);
+
     } catch (error) {
       console.error('Error creating post:', error);
-    }
-  };
-
-  const handleCommentSubmit = async (e: React.FormEvent, postId: string) => {
-    e.preventDefault();
-
-    // Get the comment text from the form element
-    const commentInput = e.currentTarget.querySelector(`#comment-input-${postId}`) as HTMLInputElement;
-    const commentText = commentInput.value.trim();
-
-    if (!commentText) {
-      return;
-    }
-
-    try {
-      await firebase.firestore().collection('comments').add({
-        postId,
-        content: commentText,
-        userId: user?.uid,
-        createdAt: new Date(),
-      });
-
-      commentInput.value = ''; // Clear the comment input field
-    } catch (error) {
-      console.error('Error creating comment:', error);
     }
   };
 
   const handleLikeClick = async (postId: string) => {
     const user = firebase.auth().currentUser;
     if (!user) {
+      setLoginLike(false);
       // User not logged in, handle accordingly
       return;
     }
@@ -126,6 +114,7 @@ const MainPage: React.FC = () => {
       await postRef.update({
         likeCount,
       });
+      setLoginLike(true);
     } catch (error) {
       console.error('Error updating like:', error);
     }
@@ -135,49 +124,58 @@ const MainPage: React.FC = () => {
     <div>
       <Header />
 
-      <div className="w-[80vw] md:w-[60vw] mx-auto pt-[120px]">
+      {/* Creating a post */}
+      <div className="w-[80vw] md:w-[60vw] lg:w-fit mx-auto pt-[120px]">
         {/* Create Post Section */}
-        <section className='  md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6'>
+        <section className='  max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6'>
           <form className='flex' onSubmit={handlePostSubmit}>
             {initial ?
-              <div className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+              <div className="hidden sm:flex relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
                 <span className="font-medium text-gray-600 dark:text-gray-300">{initial}</span>
               </div> :
-              <div className="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                <svg className="absolute w-12 h-12 text-gray-400 -left-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+              <div className="hidden sm:flex relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <svg className=" absolute w-12 h-12 text-gray-400 -left-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
               </div>
             }
 
-            <input
-              className=' flex-1 bg-gray-200 rounded-full px-3 py-2 mx-3'
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              placeholder="Write your post here..."
-            ></input>
+            <div className='flex-col flex-1 flex sm:mx-3'>
+              <input
+                className='w-[100%] flex-1 bg-gray-200 rounded-full px-3 py-2'
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                placeholder="Write your post here..."
+              ></input>
+              {
+                !curPost &&
+                <p className='text-red-400 text-xs px-3 mt-2'>⛔️ Please write something</p>
+
+              }
+            </div>
+
             <button className='hidden sm:block bg-[#1877F2] text-white p-2 rounded' type="submit">Post</button>
           </form>
         </section>
 
-        {/* Posts Section */}
-          {posts.map((post: any) => (
-            <div key={post.id} className="post max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6">
-              <div className="post-content">
-                <p>{post.content}</p>
-              </div>
-              <div className="post-actions">
-                {
-                  post.likecount ?
-                    <p>❤️ {post.likeCount}</p> :
-                    <p>❤️ 0</p>
-                }
-                <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
-              </div>
-
-              <div className="comment-section">
-                <Comments post={post} />
-              </div>
+        {/* Displaying the Posts */}
+        {posts.map((post: any) => (
+          <div key={post.id} className="post max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6">
+            <div className="post-content">
+              <p>{post.content}</p>
             </div>
-          ))}
+            <div className="post-actions">
+              {
+                post.likecount ?
+                  <p>❤️ {post.likeCount}</p> :
+                  <p>❤️ 0</p>
+              }
+              <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
+            </div>
+
+            <div className="comment-section">
+              <Comments post={post} />
+            </div>
+          </div>
+        ))}
       </div>
 
     </div>
