@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import firebase from '../utils/firebase';
 import { useContext } from 'react';
 import AuthContext from '../context/authContext';
+import ModalContext from '../context/modalContext';
 
 interface Comment {
   id: string;
@@ -20,12 +21,12 @@ interface Post {
 }
 
 const Comments: React.FC<{ post: Post }> = ({ post }) => {
+  const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { user } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
   const [editCommentId, setEditCommentId] = useState<string>('');
   const [editedCommentContent, setEditedCommentContent] = useState<string>('');
   const [prevComment, setPrevComment] = useState<string>('');
-  const [loginComment, setLoginComment] = useState<boolean>(true);
   const [noComment, setNoComment] = useState<boolean>(false)
 
   useEffect(() => {
@@ -56,7 +57,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
     e.preventDefault();
 
     if (!user) {
-      setLoginComment(false);
+      setIsModalOpen(true);
+      console.log(close)
+      console.log(post)
+
       return;
     }
 
@@ -78,7 +82,6 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       });
 
       commentInput.value = ''; // Clear the comment input field
-      setLoginComment(true);
       setNoComment(false);
     } catch (error) {
       console.error('Error creating comment:', error);

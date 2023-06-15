@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { useContext } from 'react';
 import AuthContext from '../context/authContext';
+import ModalContext from '../context/modalContext';
 import firebase from '../utils/firebase';
 import Comments from '../components/Comments';
 import SigninModal from '@/components/SigninModal';
@@ -19,7 +20,8 @@ const MainPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState<string>('');
   const [curPost, setCurPost] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
 
   let initial;
   if (user?.displayName) {
