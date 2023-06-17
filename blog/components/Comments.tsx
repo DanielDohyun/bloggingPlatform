@@ -138,12 +138,6 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         return;
       }
 
-      // const comment = commentSnapshot.data();
-      // if (comment?.userId !== user.uid) {
-      //   // User doesn't own the comment, handle accordingly
-      //   return;
-      // }
-
       await commentRef.update({
         content: editedCommentContent,
       });
