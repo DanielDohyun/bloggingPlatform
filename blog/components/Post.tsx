@@ -24,6 +24,7 @@ const Posts: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
   const [editPostId, setEditPostId] = useState<string>("");
+  const [deletePostId, setDeletePostId] = useState<string>("");
   const [editedContent, setEditedContent] = useState<string>("");
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
@@ -90,38 +91,6 @@ const Posts: React.FC = () => {
 
   //when user clicks delete btn => shows popup => yes => run handledeletepost
 
-  const handleDeletePost = async (postId: string) => {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-      setIsModalOpen(true);
-      // User not logged in, handle accordingly
-      return;
-    }
-
-    const postRef = firebase.firestore().collection("posts").doc(postId);
-    const postSnapshot = await postRef.get();
-
-    if (!postSnapshot.exists) {
-      // Post doesn't exist, handle accordingly
-      return;
-    }
-
-    const post = postSnapshot.data();
-    const postUserId = post?.userId;
-
-    if (user.uid !== postUserId) {
-      // User is not the writer of the post, handle accordingly
-      return;
-    }
-
-    try {
-      // Delete the post
-      await postRef.delete();
-    } catch (error) {
-      console.error("Error deleting post:", error);
-    }
-  };
-
   const handleLikeClick = async (postId: string) => {
     const user = firebase.auth().currentUser;
     if (!user) {
@@ -171,15 +140,15 @@ const Posts: React.FC = () => {
 
   return (
     <>
+      {confirmModalOpen && (
+        <ConfirmDeleteModal deletePostId={deletePostId} />
+      )}
       {/* Displaying the Posts */}
       {posts.map((post: any) => (
         <div
           key={post.id}
           className="post max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6"
         >
-          {confirmModalOpen && <ConfirmDeleteModal />}
-          {/* {confirmModalOpen && <ConfirmDeleteModal handleDeletePost={handleDeletePost(post.id)} />} */}
-
           <div className="post-content pb-3 ">
             <div>
               <div className="flex items-center mb-3 justify-between">
@@ -234,7 +203,10 @@ const Posts: React.FC = () => {
                   ) : null}
                   {user?.uid === post.userId && (
                     <DeleteOutlineIcon
-                      onClick={() => setConfirmModalOpen(true)}
+                      onClick={() => {
+                        setDeletePostId(post.id);
+                        setConfirmModalOpen(true);
+                      }}
                       // onClick={() => handleDeletePost(post.id)}
                     />
                   )}
