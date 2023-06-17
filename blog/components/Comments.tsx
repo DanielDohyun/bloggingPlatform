@@ -58,9 +58,6 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
     if (!user) {
       setIsModalOpen(true);
-      console.log(close)
-      console.log(post)
-
       return;
     }
 
