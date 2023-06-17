@@ -7,6 +7,7 @@ import firebase from "../utils/firebase";
 import Comments from "../components/Comments";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 interface Post {
   id: string;
@@ -15,15 +16,21 @@ interface Post {
   createdAt: Date;
 }
 
+interface DeleteProps {
+  handleDeletePost: (id: string) => Promise<void>;
+}
+
 const Posts: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState<Post[]>([]);
   const [editPostId, setEditPostId] = useState<string>("");
   const [editedContent, setEditedContent] = useState<string>("");
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
-  const [prevPost, setPrevPost] = useState<string>('');
-  const [noPost, setNoPost] = useState<boolean>(false)
-  
+  const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
+
+  const [prevPost, setPrevPost] = useState<string>("");
+  const [noPost, setNoPost] = useState<boolean>(false);
+
   let initial: string = "";
   if (user?.displayName) {
     initial = user?.displayName[0].toUpperCase();
@@ -62,8 +69,8 @@ const Posts: React.FC = () => {
     }
 
     if (prevPost === editedContent) {
-      setEditPostId('');
-      setEditedContent('');
+      setEditPostId("");
+      setEditedContent("");
       return;
     }
 
@@ -80,6 +87,8 @@ const Posts: React.FC = () => {
       console.error("Error updating post:", error);
     }
   };
+
+  //when user clicks delete btn => shows popup => yes => run handledeletepost
 
   const handleDeletePost = async (postId: string) => {
     const user = firebase.auth().currentUser;
@@ -168,6 +177,9 @@ const Posts: React.FC = () => {
           key={post.id}
           className="post max-w-sm md:max-w-md lg:max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-6"
         >
+          {confirmModalOpen && <ConfirmDeleteModal />}
+          {/* {confirmModalOpen && <ConfirmDeleteModal handleDeletePost={handleDeletePost(post.id)} />} */}
+
           <div className="post-content pb-3 ">
             <div>
               <div className="flex items-center mb-3 justify-between">
@@ -205,7 +217,7 @@ const Posts: React.FC = () => {
                       onClick={() => {
                         setEditPostId(post.id);
                         setEditedContent(post.content);
-                        setPrevPost(post.content)
+                        setPrevPost(post.content);
                       }}
                     />
                   ) : // <button onClick={() => handleEditPost(post.id, post.content)}>Edit</button>
@@ -214,12 +226,16 @@ const Posts: React.FC = () => {
                   {/* Update Button */}
                   {editPostId === post.id ? (
                     <button
-                    disabled={editedContent.length === 0} 
-                    onClick={() => handleUpdatePost(post.id)}>Update</button>
+                      disabled={editedContent.length === 0}
+                      onClick={() => handleUpdatePost(post.id)}
+                    >
+                      Update
+                    </button>
                   ) : null}
                   {user?.uid === post.userId && (
                     <DeleteOutlineIcon
-                      onClick={() => handleDeletePost(post.id)}
+                      onClick={() => setConfirmModalOpen(true)}
+                      // onClick={() => handleDeletePost(post.id)}
                     />
                   )}
                 </div>
