@@ -7,15 +7,12 @@ import ModalContext from '../context/modalContext';
 import firebase from '../utils/firebase';
 import SigninModal from '../components/SigninModal';
 import Posts from '../components/Post';
-import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
 const MainPage: React.FC = () => {
   const { user } = useContext(AuthContext);
   const [newPost, setNewPost] = useState<string>('');
   const [curPost, setCurPost] = useState<boolean>(true);
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
-  const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
-  
 
   let initial: string = '';
   if (user?.displayName) {
@@ -58,9 +55,6 @@ const MainPage: React.FC = () => {
       {
         isModalOpen && <SigninModal onClose={setIsModalOpen} />
       }
-      {/* {
-        confirmModalOpen && <ConfirmDeleteModal />
-      } */}
 
       {/* Creating a post */}
       <div className="w-[80vw] md:w-[60vw] lg:w-fit mx-auto pt-[120px]">
@@ -86,10 +80,9 @@ const MainPage: React.FC = () => {
               {
                 !curPost &&
                 <p className='text-red-400 text-xs px-3 mt-2'>⛔️ Please write something</p>
-
               }
             </div>
-            <button className='hidden sm:block bg-[#1877F2] text-white p-2 rounded' type="submit">Post</button>
+            <button className='hidden sm:block bg-[#1877F2] h-fit text-white p-2 rounded' type="submit">Post</button>
           </form>
         </section>
 

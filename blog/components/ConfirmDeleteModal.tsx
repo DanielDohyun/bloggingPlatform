@@ -6,10 +6,11 @@ import firebase from "../utils/firebase";
 
 interface DeletePostId {
   deletePostId: string;
+  isPost: boolean;
 }
 
 // const ConfirmDeleteModal: React.FC<DeleteProps> = () => {
-const ConfirmDeleteModal: React.FC<DeletePostId> = (deletePostId) => {
+const ConfirmDeleteModal: React.FC<DeletePostId> = (deletePostId, isPost) => {
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -25,13 +26,20 @@ const ConfirmDeleteModal: React.FC<DeletePostId> = (deletePostId) => {
     };
   }, [setConfirmModalOpen]);
 
-  const handleDeletePost = async (postId: string) => {
-    const user = firebase.auth().currentUser;
+  const handleDeletePost = async (postId: string, isPost:boolean) => {
+    let collection: string;
 
-    const postRef = firebase.firestore().collection("posts").doc(postId);
+    if(isPost) {
+        collection = "posts"
+    } else {
+        collection = "comments"
+    }
+
+    const postRef = firebase.firestore().collection(`${collection}`).doc(postId);
     const postSnapshot = await postRef.get();
 
     if (!postSnapshot.exists) {
+        console.log('snap missing')
       // Post doesn't exist, handle accordingly
       return;
     }
@@ -68,7 +76,7 @@ const ConfirmDeleteModal: React.FC<DeletePostId> = (deletePostId) => {
                 type="button"
                 className="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2"
                 onClick={() => {
-                  handleDeletePost(deletePostId.deletePostId);
+                  handleDeletePost(deletePostId.deletePostId, deletePostId.isPost);
                   setConfirmModalOpen(false);
                 }}
               >

@@ -8,16 +8,13 @@ import Comments from "../components/Comments";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
 
 interface Post {
   id: string;
   content: string;
   userId: string;
   createdAt: Date;
-}
-
-interface DeleteProps {
-  handleDeletePost: (id: string) => Promise<void>;
 }
 
 const Posts: React.FC = () => {
@@ -28,14 +25,8 @@ const Posts: React.FC = () => {
   const [editedContent, setEditedContent] = useState<string>("");
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
-
+  const {isPost, setIsPost} = useContext(ModalContext);
   const [prevPost, setPrevPost] = useState<string>("");
-  const [noPost, setNoPost] = useState<boolean>(false);
-
-  let initial: string = "";
-  if (user?.displayName) {
-    initial = user?.displayName[0].toUpperCase();
-  }
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -89,8 +80,6 @@ const Posts: React.FC = () => {
     }
   };
 
-  //when user clicks delete btn => shows popup => yes => run handledeletepost
-
   const handleLikeClick = async (postId: string) => {
     const user = firebase.auth().currentUser;
     if (!user) {
@@ -140,9 +129,7 @@ const Posts: React.FC = () => {
 
   return (
     <>
-      {confirmModalOpen && (
-        <ConfirmDeleteModal deletePostId={deletePostId} />
-      )}
+      {(confirmModalOpen && isPost) && <ConfirmDeleteModal deletePostId={deletePostId} isPost={true}/>}
       {/* Displaying the Posts */}
       {posts.map((post: any) => (
         <div
@@ -153,32 +140,14 @@ const Posts: React.FC = () => {
             <div>
               <div className="flex items-center mb-3 justify-between">
                 <div className="flex items-center">
-                  {initial ? (
-                    <div className="hidden sm:flex relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                      <span className="font-medium text-gray-600 dark:text-gray-300">
-                        {initial}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="hidden sm:flex relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                      <svg
-                        className=" absolute w-12 h-12 text-gray-400 -left-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
-                    </div>
-                  )}
-                  <p className="ml-3">{user?.displayName}</p>
+                  <div className="hidden sm:flex relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                      {post?.useName[0].toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="ml-3">{post?.useName}</p>
                 </div>
 
-                {/* edit + delete icons */}
                 <div>
                   {/* Edit Button */}
                   {user?.uid === post.userId && editPostId !== post.id ? (
@@ -189,25 +158,33 @@ const Posts: React.FC = () => {
                         setPrevPost(post.content);
                       }}
                     />
-                  ) : // <button onClick={() => handleEditPost(post.id, post.content)}>Edit</button>
-                  null}
+                  ) : null}
 
                   {/* Update Button */}
                   {editPostId === post.id ? (
-                    <button
-                      disabled={editedContent.length === 0}
-                      onClick={() => handleUpdatePost(post.id)}
-                    >
-                      Update
-                    </button>
+                    <div>
+                      <button
+                        disabled={editedContent.length === 0}
+                        onClick={() => handleUpdatePost(post.id)}
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditPostId("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   ) : null}
                   {user?.uid === post.userId && (
                     <DeleteOutlineIcon
                       onClick={() => {
                         setDeletePostId(post.id);
                         setConfirmModalOpen(true);
+                        setIsPost(true);
                       }}
-                      // onClick={() => handleDeletePost(post.id)}
                     />
                   )}
                 </div>
@@ -223,7 +200,13 @@ const Posts: React.FC = () => {
           </div>
           <div className="post-actions border-y border-gray-200 py-3 mb-3">
             <p>❤️ {post.likeCount}</p>
-            <button onClick={() => handleLikeClick(post.id)}>👍 Like</button>
+            <span
+              className="flex items-center"
+              onClick={() => handleLikeClick(post.id)}
+            >
+              <ThumbUpOffAltIcon />
+              <p className="ml-[3px]">Like</p>
+            </span>
           </div>
 
           <div className="comment-section">

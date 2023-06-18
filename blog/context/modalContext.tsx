@@ -6,6 +6,8 @@ interface ModalContextProps {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   confirmModalOpen: boolean;
   setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isPost: boolean;
+  setIsPost: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialModalContext: ModalContextProps = {
@@ -13,6 +15,8 @@ const initialModalContext: ModalContextProps = {
   setIsModalOpen: () => {},
   confirmModalOpen: false,
   setConfirmModalOpen: () => {},
+  isPost: false,
+  setIsPost: () => {},
 };
 
 interface Props {
@@ -24,10 +28,10 @@ const ModalContext = createContext<ModalContextProps>(initialModalContext);
 export const ModalProvider: React.FC<Props> = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-
+  const [isPost, setIsPost] = useState<boolean>(false);
 
   return (
-    <ModalContext.Provider value={{ isModalOpen, setIsModalOpen, confirmModalOpen, setConfirmModalOpen }}>
+    <ModalContext.Provider value={{ isModalOpen, setIsModalOpen, confirmModalOpen, setConfirmModalOpen, isPost, setIsPost }}>
       {children}
     </ModalContext.Provider>
   );

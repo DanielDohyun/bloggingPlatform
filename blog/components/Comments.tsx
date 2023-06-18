@@ -1,8 +1,9 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import firebase from '../utils/firebase';
-import { useContext } from 'react';
-import AuthContext from '../context/authContext';
-import ModalContext from '../context/modalContext';
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import firebase from "../utils/firebase";
+import { useContext } from "react";
+import AuthContext from "../context/authContext";
+import ModalContext from "../context/modalContext";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 interface Comment {
   id: string;
@@ -24,17 +25,19 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { user } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [editCommentId, setEditCommentId] = useState<string>('');
-  const [editedCommentContent, setEditedCommentContent] = useState<string>('');
-  const [prevComment, setPrevComment] = useState<string>('');
-  const [noComment, setNoComment] = useState<boolean>(false)
+  const [editCommentId, setEditCommentId] = useState<string>("");
+  const [editedCommentContent, setEditedCommentContent] = useState<string>("");
+  const [prevComment, setPrevComment] = useState<string>("");
+  const [noComment, setNoComment] = useState<boolean>(false);
+  const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
+  const {isPost, setIsPost} = useContext(ModalContext);
 
   useEffect(() => {
     const unsubscribe = firebase
       .firestore()
-      .collection('comments')
-      .where('postId', '==', post.id)
-      .orderBy('createdAt', 'asc')
+      .collection("comments")
+      .where("postId", "==", post.id)
+      .orderBy("createdAt", "asc")
       .onSnapshot((snapshot) => {
         const commentData: Comment[] = [];
         snapshot.forEach((doc) => {
@@ -53,7 +56,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
     return () => unsubscribe();
   }, [post.id]);
 
-  const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>, postId: string) => {
+  const handleCommentSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    postId: string
+  ) => {
     e.preventDefault();
 
     if (!user) {
@@ -62,7 +68,9 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
     }
 
     // Get the comment text from the form element
-    const commentInput = e.currentTarget.querySelector(`#comment-input-${postId}`) as HTMLInputElement;
+    const commentInput = e.currentTarget.querySelector(
+      `#comment-input-${postId}`
+    ) as HTMLInputElement;
     const commentText = commentInput.value.trim();
 
     if (!commentText) {
@@ -70,7 +78,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       return;
     }
     try {
-      await firebase.firestore().collection('comments').add({
+      await firebase.firestore().collection("comments").add({
         postId,
         content: commentText,
         userName: user?.displayName,
@@ -78,38 +86,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         createdAt: new Date(),
       });
 
-      commentInput.value = ''; // Clear the comment input field
+      commentInput.value = ""; // Clear the comment input field
       setNoComment(false);
     } catch (error) {
-      console.error('Error creating comment:', error);
-    }
-  };
-
-  const handleCommentDelete = async (commentId: string) => {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-      // User not logged in, handle accordingly
-      return;
-    }
-
-    try {
-      const commentRef = firebase.firestore().collection('comments').doc(commentId);
-      const commentSnapshot = await commentRef.get();
-
-      if (!commentSnapshot.exists) {
-        // Comment doesn't exist, handle accordingly
-        return;
-      }
-
-      const comment = commentSnapshot.data();
-      if (comment?.userId !== user.uid) {
-        // User doesn't own the comment, handle accordingly
-        return;
-      }
-
-      await commentRef.delete();
-    } catch (error) {
-      console.error('Error deleting comment:', error);
+      console.error("Error creating comment:", error);
     }
   };
 
@@ -121,7 +101,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
     }
 
     try {
-      const commentRef = firebase.firestore().collection('comments').doc(commentId);
+      const commentRef = firebase
+        .firestore()
+        .collection("comments")
+        .doc(commentId);
       const commentSnapshot = await commentRef.get();
 
       if (!commentSnapshot.exists) {
@@ -130,8 +113,8 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       }
 
       if (prevComment === editedCommentContent) {
-        setEditCommentId('');
-        setEditedCommentContent('');
+        setEditCommentId("");
+        setEditedCommentContent("");
         return;
       }
 
@@ -139,10 +122,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         content: editedCommentContent,
       });
 
-      setEditCommentId('');
-      setEditedCommentContent('');
+      setEditCommentId("");
+      setEditedCommentContent("");
     } catch (error) {
-      console.error('Error updating comment:', error);
+      console.error("Error updating comment:", error);
     }
   };
 
@@ -151,17 +134,17 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       <h3>Comments</h3>
 
       <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
-        <div className='flex flex-col'>
+        <div className="flex flex-col">
           <input
             type="text"
             id={`comment-input-${post.id}`}
             placeholder="Write a comment..."
           />
-          {
-            noComment &&
-            <p className='text-red-400 text-xs mt-2'>⛔️ Please write something</p>
-
-          }
+          {noComment && (
+            <p className="text-red-400 text-xs mt-2">
+              ⛔️ Please write something
+            </p>
+          )}
         </div>
 
         <button type="submit">Submit</button>
@@ -169,6 +152,9 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
       {comments.map((comment) => (
         <div key={comment.id} className="comment">
+          {(confirmModalOpen && !isPost) && (
+            <ConfirmDeleteModal deletePostId={comment.id} isPost={false} />
+          )}
           <p>{comment?.userName}</p>
           {editCommentId === comment.id ? (
             <div>
@@ -177,8 +163,14 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
                 value={editedCommentContent}
                 onChange={(e) => setEditedCommentContent(e.target.value)}
               />
-              <button disabled={editedCommentContent.length === 0} type='submit' onClick={() => handleCommentEdit(comment.id)}>Save</button>
-              <button onClick={() => setEditCommentId('')}>Cancel</button>
+              <button
+                disabled={editedCommentContent.length === 0}
+                type="submit"
+                onClick={() => handleCommentEdit(comment.id)}
+              >
+                Save
+              </button>
+              <button onClick={() => setEditCommentId("")}>Cancel</button>
             </div>
           ) : (
             <p>{comment.content}</p>
@@ -186,14 +178,23 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
           {comment.userId === firebase.auth().currentUser?.uid && (
             <div className="comment-actions">
               {editCommentId === comment.id ? null : (
-                <button onClick={() => { setEditCommentId(comment.id); setEditedCommentContent(comment.content); setPrevComment(comment.content) }}>Edit</button>
+                <button
+                  onClick={() => {
+                    setEditCommentId(comment.id);
+                    setEditedCommentContent(comment.content);
+                    setPrevComment(comment.content);
+                  }}
+                >
+                  Edit
+                </button>
               )}
-              <button onClick={() => handleCommentDelete(comment.id)}>Delete</button>
+              <button onClick={() => {setConfirmModalOpen(true);
+              setIsPost(false);
+              }}>Delete</button>
             </div>
           )}
         </div>
       ))}
-
     </div>
   );
 };
