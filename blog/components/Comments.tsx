@@ -30,7 +30,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const [prevComment, setPrevComment] = useState<string>("");
   const [noComment, setNoComment] = useState<boolean>(false);
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
-  const {isPost, setIsPost} = useContext(ModalContext);
+  const { isPost, setIsPost } = useContext(ModalContext);
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -152,7 +152,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
       {comments.map((comment) => (
         <div key={comment.id} className="comment">
-          {(confirmModalOpen && !isPost) && (
+          {confirmModalOpen && !isPost && (
             <ConfirmDeleteModal deletePostId={comment.id} isPost={false} />
           )}
           <p>{comment?.userName}</p>
@@ -188,13 +188,59 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
                   Edit
                 </button>
               )}
-              <button onClick={() => {setConfirmModalOpen(true);
-              setIsPost(false);
-              }}>Delete</button>
+              <button
+                onClick={() => {
+                  setConfirmModalOpen(true);
+                  setIsPost(false);
+                }}
+              >
+                Delete
+              </button>
             </div>
           )}
         </div>
       ))}
+
+              {/* comment section style  */}
+      <div className="flex items-center space-x-2">
+        <div className="flex flex-shrink-0 self-start cursor-pointer">
+          <img
+            src="https://images.unsplash.com/photo-1609349744982-0de6526d978b?ixid=MXwxMjA3fDB8MHx0b3BpYy1mZWVkfDU5fHRvd0paRnNrcEdnfHxlbnwwfHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+            alt=""
+            className="h-8 w-8 object-cover rounded-full"
+          />
+        </div>
+        <div className="flex items-center justify-center space-x-2">
+          <div className="block">
+            <div className="bg-gray-100 w-auto rounded-xl px-2 pb-2">
+              <div className="font-medium">
+                <a href="#" className="hover:underline text-sm">
+                  <small>Arkadewi</small>
+                </a>
+              </div>
+              <div className="text-xs">
+                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+                Expedita, maiores!
+              </div>
+            </div>
+            <div className="flex justify-start items-center text-xs w-full">
+              <div className="font-semibold text-gray-700 px-2 flex items-center justify-center space-x-1">
+                <a href="#" className="hover:underline">
+                  <small>Like</small>
+                </a>
+                <small className="self-center">.</small>
+                <a href="#" className="hover:underline">
+                  <small>Reply</small>
+                </a>
+                <small className="self-center">.</small>
+                <a href="#" className="hover:underline">
+                  <small>15 hour</small>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
