@@ -4,6 +4,7 @@ import { useContext } from "react";
 import AuthContext from "../context/authContext";
 import ModalContext from "../context/modalContext";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import SendIcon from "@mui/icons-material/Send";
 
 interface Comment {
   id: string;
@@ -19,12 +20,14 @@ interface Post {
   content: string;
   userId: string;
   createdAt: Date;
+  useName: string;
 }
 
 const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { user } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [curComment, setCurComment] = useState<string>('');
   const [editCommentId, setEditCommentId] = useState<string>("");
   const [editedCommentContent, setEditedCommentContent] = useState<string>("");
   const [prevComment, setPrevComment] = useState<string>("");
@@ -57,10 +60,10 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
   }, [post.id]);
 
   const handleCommentSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
+    // e: React.FormEvent<HTMLFormElement>,
     postId: string
   ) => {
-    e.preventDefault();
+    // e.preventDefault();
 
     if (!user) {
       setIsModalOpen(true);
@@ -68,10 +71,11 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
     }
 
     // Get the comment text from the form element
-    const commentInput = e.currentTarget.querySelector(
-      `#comment-input-${postId}`
-    ) as HTMLInputElement;
-    const commentText = commentInput.value.trim();
+    // const commentInput = e.currentTarget.querySelector(
+    //   `#comment-input-${postId}`
+    // ) as HTMLInputElement;
+    // const commentText = commentInput.value.trim();
+    const commentText = curComment.trim();
 
     if (!commentText) {
       setNoComment(true);
@@ -86,7 +90,8 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
         createdAt: new Date(),
       });
 
-      commentInput.value = ""; // Clear the comment input field
+      // commentInput.value = ""; // Clear the comment input field
+      setCurComment('');
       setNoComment(false);
     } catch (error) {
       console.error("Error creating comment:", error);
@@ -131,15 +136,33 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
   return (
     <div className="commentContainer">
-      <h3>Comments</h3>
-
-      <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
+      {/* <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
+       */}
+      <form onSubmit={(e) => handleCommentSubmit(post.id)}>
         <div className="flex flex-col">
-          <input
-            type="text"
-            id={`comment-input-${post.id}`}
-            placeholder="Write a comment..."
-          />
+          <div className="flex items-center bg-gray-100  rounded-xl p-2">
+            <input
+              type="text"
+              id={`comment-input-${post.id}`}
+              onChange={(e) => setCurComment(e.target.value)}
+              value={curComment}
+              placeholder="Please enter a comment..."
+              className="bg-gray-100  rounded-xl w-[100%] mr-2 text-xs border-none outline-none"
+            />
+            <SendIcon
+              className=""
+              onClick={(e) => {
+                if (curComment.length !== 0) {
+                  e.preventDefault();
+                  console.log('submit')
+                  // handleCommentSubmit(e, post.id)
+                  handleCommentSubmit(post.id);
+
+                }
+              }}
+            />
+          </div>
+
           {noComment && (
             <p className="text-red-400 text-xs mt-2">
               ⛔️ Please write something
@@ -155,26 +178,60 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
           {confirmModalOpen && !isPost && (
             <ConfirmDeleteModal deletePostId={comment.id} isPost={false} />
           )}
-          <p>{comment?.userName}</p>
-          {editCommentId === comment.id ? (
-            <div>
-              <input
-                type="text"
-                value={editedCommentContent}
-                onChange={(e) => setEditedCommentContent(e.target.value)}
-              />
-              <button
-                disabled={editedCommentContent.length === 0}
-                type="submit"
-                onClick={() => handleCommentEdit(comment.id)}
-              >
-                Save
-              </button>
-              <button onClick={() => setEditCommentId("")}>Cancel</button>
+
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="flex flex-shrink-0 self-start cursor-pointer">
+              <div className="hidden sm:flex relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <span className="font-medium text-gray-600 dark:text-gray-300">
+                  {post?.useName[0].toUpperCase()}
+                </span>
+              </div>
             </div>
-          ) : (
-            <p>{comment.content}</p>
-          )}
+            <div className="block flex-1  ">
+              <div className="bg-gray-100 w-auto rounded-xl px-2 pb-2">
+                <div className="font-medium">
+                  <a href="#" className="hover:underline text-sm">
+                    <small>{post?.useName}</small>
+                  </a>
+                </div>
+                {editCommentId === comment.id ? (
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      className="bg-gray-100  rounded-xl p-2 w-[100%] mr-2 text-xs border-none outline-none"
+                      placeholder="Please enter a comment..."
+                      value={editedCommentContent}
+                      onChange={(e) => setEditedCommentContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          editedCommentContent.length !== 0
+                        ) {
+                          e.preventDefault();
+                          handleCommentEdit(comment.id);
+                        } else if (e.key === "Escape") {
+                          e.preventDefault();
+                          setEditCommentId("");
+                        }
+                      }}
+                    />
+                    <SendIcon
+                      className=""
+                      onClick={(e) => {
+                        if (editedCommentContent.length !== 0) {
+                          e.preventDefault();
+                          handleCommentEdit(comment.id);
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs">{comment.content}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
           {comment.userId === firebase.auth().currentUser?.uid && (
             <div className="comment-actions">
               {editCommentId === comment.id ? null : (
@@ -200,47 +257,6 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
           )}
         </div>
       ))}
-
-              {/* comment section style  */}
-      <div className="flex items-center space-x-2">
-        <div className="flex flex-shrink-0 self-start cursor-pointer">
-          <img
-            src="https://images.unsplash.com/photo-1609349744982-0de6526d978b?ixid=MXwxMjA3fDB8MHx0b3BpYy1mZWVkfDU5fHRvd0paRnNrcEdnfHxlbnwwfHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-            alt=""
-            className="h-8 w-8 object-cover rounded-full"
-          />
-        </div>
-        <div className="flex items-center justify-center space-x-2">
-          <div className="block">
-            <div className="bg-gray-100 w-auto rounded-xl px-2 pb-2">
-              <div className="font-medium">
-                <a href="#" className="hover:underline text-sm">
-                  <small>Arkadewi</small>
-                </a>
-              </div>
-              <div className="text-xs">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Expedita, maiores!
-              </div>
-            </div>
-            <div className="flex justify-start items-center text-xs w-full">
-              <div className="font-semibold text-gray-700 px-2 flex items-center justify-center space-x-1">
-                <a href="#" className="hover:underline">
-                  <small>Like</small>
-                </a>
-                <small className="self-center">.</small>
-                <a href="#" className="hover:underline">
-                  <small>Reply</small>
-                </a>
-                <small className="self-center">.</small>
-                <a href="#" className="hover:underline">
-                  <small>15 hour</small>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

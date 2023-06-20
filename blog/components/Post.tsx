@@ -15,6 +15,7 @@ interface Post {
   content: string;
   userId: string;
   createdAt: Date;
+  useName: string;
 }
 
 const Posts: React.FC = () => {
@@ -192,6 +193,7 @@ const Posts: React.FC = () => {
             </div>
             {editPostId === post.id && (
               <input
+              className="border-none outline-none"
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
               />

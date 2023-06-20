@@ -72,11 +72,11 @@ const MainPage: React.FC = () => {
 
             <div className='flex-col flex-1 flex sm:mx-3'>
               <input
-                className='w-[100%] flex-1 bg-gray-200 rounded-full px-3 py-2'
+                className='w-[100%] flex-1 bg-gray-200 rounded-full px-3 py-2 border-none outline-none'
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
                 placeholder="Write your post here..."
-              ></input>
+              />
               {
                 !curPost &&
                 <p className='text-red-400 text-xs px-3 mt-2'>⛔️ Please write something</p>
