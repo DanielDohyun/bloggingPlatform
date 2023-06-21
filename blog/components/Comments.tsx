@@ -5,6 +5,7 @@ import AuthContext from "../context/authContext";
 import ModalContext from "../context/modalContext";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import SendIcon from "@mui/icons-material/Send";
+import LongMenu from "./Dropdown";
 
 interface Comment {
   id: string;
@@ -27,13 +28,21 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
   const { user } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [curComment, setCurComment] = useState<string>('');
+  const [curComment, setCurComment] = useState<string>("");
   const [editCommentId, setEditCommentId] = useState<string>("");
   const [editedCommentContent, setEditedCommentContent] = useState<string>("");
   const [prevComment, setPrevComment] = useState<string>("");
   const [noComment, setNoComment] = useState<boolean>(false);
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
   const { isPost, setIsPost } = useContext(ModalContext);
+
+  const dropdownProps = {
+    setEditCommentId: setEditCommentId,
+    setEditedCommentContent: setEditedCommentContent,
+    setPrevComment: setPrevComment,
+    setConfirmModalOpen: setConfirmModalOpen,
+    setIsPost: setIsPost
+  }
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -91,7 +100,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       });
 
       // commentInput.value = ""; // Clear the comment input field
-      setCurComment('');
+      setCurComment("");
       setNoComment(false);
     } catch (error) {
       console.error("Error creating comment:", error);
@@ -140,7 +149,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
        */}
       <form onSubmit={(e) => handleCommentSubmit(post.id)}>
         <div className="flex flex-col">
-          <div className="flex items-center bg-gray-100  rounded-xl p-2">
+          <div className="flex items-center bg-gray-100  rounded-xl p-2 mb-3">
             <input
               type="text"
               id={`comment-input-${post.id}`}
@@ -154,10 +163,9 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
               onClick={(e) => {
                 if (curComment.length !== 0) {
                   e.preventDefault();
-                  console.log('submit')
+                  console.log("submit");
                   // handleCommentSubmit(e, post.id)
                   handleCommentSubmit(post.id);
-
                 }
               }}
             />
@@ -169,8 +177,6 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
             </p>
           )}
         </div>
-
-        <button type="submit">Submit</button>
       </form>
 
       {comments.map((comment) => (
@@ -230,10 +236,13 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
                 )}
               </div>
             </div>
+            {/* <LongMenu setEditCommentId={setEditCommentId(comment.id)} setEditedCommentContent={setEditedCommentContent(comment.content)} setPrevComment={setPrevComment(comment.content)} setConfirmModalOpen={setConfirmModalOpen(true)} setIsPost={setIsPost(false)} /> */}
+            <LongMenu />
           </div>
 
           {comment.userId === firebase.auth().currentUser?.uid && (
             <div className="comment-actions">
+
               {editCommentId === comment.id ? null : (
                 <button
                   onClick={() => {
