@@ -24,7 +24,12 @@ export interface StateProps {
   setIsPost: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export interface CommentProps extends StateProps {
-  id: string;
-  content: string;
+export interface CommentProps {
+  commentId: string;
+  commentContent: string;
+  setEditCommentId: React.Dispatch<React.SetStateAction<string>>;
+  setEditedCommentContent: React.Dispatch<React.SetStateAction<string>>;
+  setPrevComment: React.Dispatch<React.SetStateAction<string>>;
+  setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPost: React.Dispatch<React.SetStateAction<boolean>>;
 }
