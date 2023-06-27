@@ -9,14 +9,7 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
-
-interface Post {
-  id: string;
-  content: string;
-  userId: string;
-  createdAt: Date;
-  useName: string;
-}
+import { Post } from "@/app/interface/interface";
 
 const Posts: React.FC = () => {
   const { user } = useContext(AuthContext);

@@ -6,23 +6,7 @@ import ModalContext from "../context/modalContext";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import SendIcon from "@mui/icons-material/Send";
 import LongMenu from "./Dropdown";
-
-interface Comment {
-  id: string;
-  postId: string;
-  content: string;
-  userName: string;
-  userId: string;
-  createdAt: Date;
-}
-
-interface Post {
-  id: string;
-  content: string;
-  userId: string;
-  createdAt: Date;
-  useName: string;
-}
+import { Comment, Post } from "@/app/interface/interface";
 
 const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const { isModalOpen, setIsModalOpen } = useContext(ModalContext);
@@ -30,19 +14,12 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [curComment, setCurComment] = useState<string>("");
   const [editCommentId, setEditCommentId] = useState<string>("");
+  const [deleteCommentId, setDeleteCommentId] = useState<string>("");
   const [editedCommentContent, setEditedCommentContent] = useState<string>("");
   const [prevComment, setPrevComment] = useState<string>("");
   const [noComment, setNoComment] = useState<boolean>(false);
   const { confirmModalOpen, setConfirmModalOpen } = useContext(ModalContext);
   const { isPost, setIsPost } = useContext(ModalContext);
-
-  const dropdownProps = {
-    setEditCommentId: setEditCommentId,
-    setEditedCommentContent: setEditedCommentContent,
-    setPrevComment: setPrevComment,
-    setConfirmModalOpen: setConfirmModalOpen,
-    setIsPost: setIsPost
-  }
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -145,9 +122,12 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
 
   return (
     <div className="commentContainer">
-      {/* <form onSubmit={(e) => handleCommentSubmit(e, post.id)}>
-       */}
-      <form onSubmit={(e) => handleCommentSubmit(post.id)}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleCommentSubmit(post.id);
+        }}
+      >
         <div className="flex flex-col">
           <div className="flex items-center bg-gray-100  rounded-xl p-2 mb-3">
             <input
@@ -161,10 +141,8 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
             <SendIcon
               className=""
               onClick={(e) => {
+                e.preventDefault();
                 if (curComment.length !== 0) {
-                  e.preventDefault();
-                  console.log("submit");
-                  // handleCommentSubmit(e, post.id)
                   handleCommentSubmit(post.id);
                 }
               }}
@@ -182,14 +160,14 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
       {comments.map((comment) => (
         <div key={comment.id} className="comment">
           {confirmModalOpen && !isPost && (
-            <ConfirmDeleteModal deletePostId={comment.id} isPost={false} />
+            <ConfirmDeleteModal deletePostId={deleteCommentId} isPost={false} />
           )}
 
           <div className="flex items-center space-x-2 mb-2">
             <div className="flex flex-shrink-0 self-start cursor-pointer">
               <div className="hidden sm:flex relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
                 <span className="font-medium text-gray-600 dark:text-gray-300">
-                  {post?.useName[0].toUpperCase()}
+                  {comment?.userName[0].toUpperCase()}
                 </span>
               </div>
             </div>
@@ -197,7 +175,7 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
               <div className="bg-gray-100 w-auto rounded-xl px-2 pb-2">
                 <div className="font-medium">
                   <a href="#" className="hover:underline text-sm">
-                    <small>{post?.useName}</small>
+                    <small>{comment?.userName}</small>
                   </a>
                 </div>
                 {editCommentId === comment.id ? (
@@ -236,34 +214,17 @@ const Comments: React.FC<{ post: Post }> = ({ post }) => {
                 )}
               </div>
             </div>
-            {/* <LongMenu setEditCommentId={setEditCommentId(comment.id)} setEditedCommentContent={setEditedCommentContent(comment.content)} setPrevComment={setPrevComment(comment.content)} setConfirmModalOpen={setConfirmModalOpen(true)} setIsPost={setIsPost(false)} /> */}
-            <LongMenu />
+            {comment.userId === firebase.auth().currentUser?.uid && (
+              <LongMenu
+                commentId={comment.id}
+                commentContent={comment.content}
+                setEditCommentId={setEditCommentId}
+                setEditedCommentContent={setEditedCommentContent}
+                setPrevComment={setPrevComment}
+                setDeleteCommentId={setDeleteCommentId}
+              />
+            )}
           </div>
-
-          {comment.userId === firebase.auth().currentUser?.uid && (
-            <div className="comment-actions">
-
-              {editCommentId === comment.id ? null : (
-                <button
-                  onClick={() => {
-                    setEditCommentId(comment.id);
-                    setEditedCommentContent(comment.content);
-                    setPrevComment(comment.content);
-                  }}
-                >
-                  Edit
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setConfirmModalOpen(true);
-                  setIsPost(false);
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          )}
         </div>
       ))}
     </div>

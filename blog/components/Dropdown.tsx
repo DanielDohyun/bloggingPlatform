@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useContext, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -6,7 +6,8 @@ import { styled, alpha } from "@mui/material/styles";
 import Menu, { MenuProps } from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import EditIcon from "@mui/icons-material/Edit";
-import { CommentProps, StateProps } from "@/app/interface/interface";
+import { CommentProps } from "@/app/interface/interface";
+import ModalContext from "../context/modalContext";
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -51,15 +52,32 @@ const StyledMenu = styled((props: MenuProps) => (
   },
 }));
 
-const CustomizedMenus: React.FC<CommentProps> = ({ commentId, commentContent,  setEditCommentId,
-  setEditedCommentContent, setPrevComment, setConfirmModalOpen, setIsPost, }) => {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+const CustomizedMenus: React.FC<CommentProps> = ({
+  commentId,
+  commentContent,
+  setEditCommentId,
+  setEditedCommentContent,
+  setPrevComment,
+  setDeleteCommentId
+}) => {
+  const { setConfirmModalOpen, setIsPost } = useContext(ModalContext);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleDelete = (commentId:string) => {
+    handleClose();
+    setDeleteCommentId(commentId);
+    setTimeout(function () { 
+    setConfirmModalOpen(true); 
+    setIsPost(false);}, 50);
   };
 
   return (
@@ -83,20 +101,16 @@ const CustomizedMenus: React.FC<CommentProps> = ({ commentId, commentContent,  s
         open={open}
         onClose={handleClose}
       >
-        <MenuItem onClick={()=> {handleClose();
-        setEditCommentId(commentId);
-        setEditedCommentContent(commentContent);
-        setPrevComment(commentContent);
+        <MenuItem onClick={() => {
+          handleClose();
+          setEditCommentId(commentId);
+          setEditedCommentContent(commentContent);
+          setPrevComment(commentContent);
         }} disableRipple>
           <EditIcon />
           Edit
         </MenuItem>
-        <MenuItem onClick={() => {
-        handleClose();
-        setConfirmModalOpen(true);
-        setIsPost(false);
-        console.log(commentContent)
-        }} disableRipple>
+        <MenuItem onClick={()=> handleDelete(commentId)} disableRipple>
           <DeleteOutlineIcon />
           Delete
         </MenuItem>
