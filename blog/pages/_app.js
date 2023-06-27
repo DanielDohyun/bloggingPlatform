@@ -1,13 +1,12 @@
-// import { AuthProvider } from '../context/authContext';
+import React from 'react';
+import RootLayout from '../app/layout';
 
-// function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
+  return (
+    <RootLayout>
+      <Component {...pageProps} />
+    </RootLayout>
+  );
+}
 
-//   console.log('hi')
-//   return (
-//     <AuthProvider>
-//       <Component {...pageProps} />
-//     </AuthProvider>
-//   );
-// }
-
-// export default App;
+export default MyApp;

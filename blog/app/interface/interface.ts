@@ -15,21 +15,11 @@ export interface Post {
   useName: string;
 }
 
-export interface StateProps {
-  // setEditCommentId: React.Dispatch<React.SetStateAction<string>>;
-  setEditCommentId: React.Dispatch<React.SetStateAction<string>>;
-  setEditedCommentContent: React.Dispatch<React.SetStateAction<string>>;
-  setPrevComment: React.Dispatch<React.SetStateAction<string>>;
-  setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsPost: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
 export interface CommentProps {
   commentId: string;
   commentContent: string;
   setEditCommentId: React.Dispatch<React.SetStateAction<string>>;
   setEditedCommentContent: React.Dispatch<React.SetStateAction<string>>;
   setPrevComment: React.Dispatch<React.SetStateAction<string>>;
-  setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsPost: React.Dispatch<React.SetStateAction<boolean>>;
+  setDeleteCommentId: React.Dispatch<React.SetStateAction<string>>;
 }
